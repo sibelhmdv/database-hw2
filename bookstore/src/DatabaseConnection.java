@@ -42,6 +42,9 @@ public class DatabaseConnection {
             
             //readBooks(connection, authorid); //check after fixing inserting book method
 
+            System.out.print("Enter book ID: ");
+            int bookid = scanner.nextInt();
+            updateOperationBook(connection, bookid);
 
             // Close the connection when done
             connection.close();
@@ -260,5 +263,47 @@ public class DatabaseConnection {
         return false;
     }
 
-    private static void updateOperationBooks(Connection connection)
+    private static void updateOperationBook(Connection connection, int bookid) {
+        
+        //changing books in the given attribute
+
+        try {
+
+            if(!bookExists(connection, bookid)) {
+                System.out.println("There's no such ID assigned to any kind of books in our store. Please try to INSERT it first!");
+                return;
+            }
+
+            Scanner scanner = new Scanner(System.in);
+    
+            System.out.print("Enter new Book Title: ");
+            String new_title = scanner.nextLine().trim();
+    
+            System.out.print("Enter new Book Genre: ");
+            String new_genre = scanner.nextLine().trim();
+    
+            System.out.print("Enter new Stock Quantity: ");
+            int new_stock_quantity = scanner.nextInt();
+    
+            System.out.print("Enter new Price: ");
+            double new_price = scanner.nextDouble();
+    
+            String updateQuery = "UPDATE books SET title = ?, genre = ?, stockquantity = ?, price = ? WHERE bookid = ?";
+    
+            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+                preparedStatement.setString(1, new_title);
+                preparedStatement.setString(2, new_genre);
+                preparedStatement.setInt(3, new_stock_quantity);
+                preparedStatement.setDouble(4, new_price);
+                preparedStatement.setInt(5, bookid);
+    
+                int rowsUpdated = preparedStatement.executeUpdate();
+                System.out.println(rowsUpdated + " row(s) updated in Books Table.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 }
