@@ -30,8 +30,10 @@ public class DatabaseConnection {
 
             Scanner scanner = new Scanner(System.in);
 
-
-            System.out.print("Enter the number for the operation: ");
+            System.out.print("Enter the number for the operation: \n 0 - Insert Authors \n " +
+             "1 - Insert Books \n 2 - Delete Author \n 3 - Delete Book \n 4 - Read Authors \n " +
+             "5 - Read Books \n 6 - Update Book Table \n 7 - Transaction of Stock Quantity\n");
+            
             int opCode = scanner.nextInt();
 
             
