@@ -29,29 +29,89 @@ public class DatabaseConnection {
 
 
             Scanner scanner = new Scanner(System.in);
-            System.out.print("Enter author ID: ");
-            int authorid = scanner.nextInt();
+
+
+            System.out.print("Enter the number for the operation: ");
+            int opCode = scanner.nextInt();
+
+            
+
+            switch (opCode) {
+                case 0:              
+                    System.out.print("Enter author ID: ");
+                    int authorid = scanner.nextInt();
+                    insertOperationAuthors(connection, authorid); 
+                    break;
+
+                case 1:
+                    System.out.print("Enter author ID: ");
+                    authorid = scanner.nextInt();
+                    insertOperationBooks(connection, authorid); 
+                    break;
+
+                case 2:
+                    System.out.print("Enter author ID: ");
+                    authorid = scanner.nextInt();
+                    deleteOperationAuthors(connection, authorid);
+                    break;
+
+                case 3:
+                    System.out.print("Enter author ID: ");
+                    authorid = scanner.nextInt();
+                    deleteOperationBooks(connection, authorid);   
+                    break;
+                    
+                case 4: 
+                    readAuthors(connection);    
+                    break;
+
+                case 5: 
+                    System.out.print("Enter author ID: ");
+                    authorid = scanner.nextInt();
+                    readBooks(connection, authorid);    
+                    break;
+
+                case 6: 
+                    System.out.print("Enter book ID: ");
+                    int bookid = scanner.nextInt();
+                    updateOperationBook(connection, bookid);  
+                    break;  
+
+                case 7:
+                    System.out.print("Enter author ID: ");
+                    authorid = scanner.nextInt();
+                    System.out.print("Enter Order ID: ");
+                    int orderId = scanner.nextInt();
+                    System.out.print("Enter the # of quantities: ");
+                    int totalquantity = scanner.nextInt();
+                    System.out.print("Enter book ID: ");
+                    bookid = scanner.nextInt();
+                    placeOrder(connection, orderId, authorid, bookid, totalquantity);
+                    break;
+                default:
+                    System.out.println("Not any specified operation");
+                    break;
+            }
+
+         
 
             //insertOperationAuthors(connection, authorid); 
-
-            //insertOperationBooks(connection, authorid); 
-            
+            //insertOperationBooks(connection, authorid);       
             //deleteOperationBooks(connection, authorid); 
+            //deleteOperationAuthors(connection, authorid);        
+            //readAuthors(connection);     
+            //readBooks(connection, authorid); 
 
-            //deleteOperationAuthors(connection, authorid);
-            
-            //readAuthors(connection);
-            
-            //readBooks(connection, authorid); //check after fixing inserting book method
 
-            System.out.print("Enter book ID: ");
-            int bookid = scanner.nextInt();
+            //System.out.print("Enter book ID: ");
+            //int bookid = scanner.nextInt();
             //updateOperationBook(connection, bookid);
 
-            System.out.print("Enter Order ID: ");
-            int orderId = scanner.nextInt();
-            System.out.print("Enter the # of quantities: ");
-            int totalquantity = scanner.nextInt();
+
+            //System.out.print("Enter Order ID: ");
+            //int orderId = scanner.nextInt();
+            //System.out.print("Enter the # of quantities: ");
+            //int totalquantity = scanner.nextInt();
             //placeOrder(connection, orderId, authorid, bookid, totalquantity);
 
             // Close the connection when done
