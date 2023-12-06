@@ -19,28 +19,37 @@ public class DatabaseConnection {
             // Establish the database connection
             Connection connection = DriverManager.getConnection(url, user, password);
 
-
-            //insertOperationAuthors(connection, 1); //no duplicate should have here
-
-            //insertOperationBooks(connection, 1); //no duplicate should have here
-            
-            //deleteOperationBooks(connection, 1); 
-
-            //deleteOperationAuthors(connection, 1);
-            
-
             if (connection != null && !connection.isClosed()) {
                 System.out.println("Connected to the database!");
             } else {
                 System.out.println("Failed to connect to the database.");
             }
 
+
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("Enter author ID: ");
+            int authorid = scanner.nextInt();
+
+            //insertOperationAuthors(connection, authorid); 
+
+            insertOperationBooks(connection, authorid); 
+            
+            //deleteOperationBooks(connection, authorid); 
+
+            //deleteOperationAuthors(connection, authorid);
+            
+            //readAuthors(connection);
+            
+            readBooks(connection, authorid);
+
             // Close the connection when done
             connection.close();
+
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
             System.err.println("Exception" + e.getMessage());
         }
+
     }
 
     
@@ -52,18 +61,38 @@ public class DatabaseConnection {
                 return;
             }
 
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("Enter Book ID: ");
+            int bookid = scanner.nextInt();
+
+            System.out.print("Enter Book Title: ");
+            String title = scanner.nextLine();
+
+            scanner.nextLine(); //prevention of empty string for the next line
+
+            System.out.print("Enter Book's Stock Quantity: ");
+            int quantity = scanner.nextInt();
+
+            System.out.print("Enter Book's Genre: ");
+            String genre = scanner.nextLine();
+
+            scanner.nextLine();
+
+            System.out.print("Enter Book's Price (in 10.2 format): ");
+            double price = scanner.nextDouble();
+
 
             // Insert a new book
             String insertQuery = "INSERT INTO books (bookid, title, genre, authorid, stockquantity, price) " + 
             "VALUES (?,?,?,?,?,?)";
 
             try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
-                preparedStatement.setInt(1, 1);
-                preparedStatement.setString(2, "Beauty and the Beast"); 
-                preparedStatement.setString(3, "Romance");
+                preparedStatement.setInt(1, bookid);
+                preparedStatement.setString(2, title); 
+                preparedStatement.setString(3, genre);
                 preparedStatement.setInt(4, authorid); 
-                preparedStatement.setInt(5, 3);
-                preparedStatement.setDouble(6, 20.2);
+                preparedStatement.setInt(5, quantity);
+                preparedStatement.setDouble(6, price);
 
                 int rowsInserted = preparedStatement.executeUpdate();
                 System.out.println(rowsInserted + " row(s) inserted in Books Table.");
@@ -98,14 +127,21 @@ public class DatabaseConnection {
                 return;
             }
 
-            // Insert new Authors
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("Enter Author Name: ");
+            String firstname = scanner.nextLine();
+
+            System.out.print("Enter Author's Lastname: ");
+            String lastname = scanner.nextLine();
+
+            // Insert new Author
             String insertQuery = "INSERT INTO authors (authorid, firstname, lastname) " + 
             "VALUES (?,?,?)";
 
             try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
                 preparedStatement.setInt(1, authorid);
-                preparedStatement.setString(2, "Gabrielle-Suzanne"); 
-                preparedStatement.setString(3, "Barbot de Villeneuve");
+                preparedStatement.setString(2, firstname); 
+                preparedStatement.setString(3, lastname);
 
                 int rowsInserted = preparedStatement.executeUpdate();
                 System.out.println(rowsInserted + " row(s) inserted in Authors Table.");
@@ -142,6 +178,57 @@ public class DatabaseConnection {
 
                 int rowsAffected = preparedStatement.executeUpdate();
                 System.out.println(rowsAffected + " row(s) deleted from Authors.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void readAuthors(Connection connection) {
+        try {
+            // Select and show all Authors
+            String selectQuery = "SELECT * FROM authors";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
+                 ResultSet resultSet = preparedStatement.executeQuery()) {
+
+                while (resultSet.next()) {
+                    int authorId = resultSet.getInt("authorid");
+                    String firstname = resultSet.getString("firstname");
+                    String lastname = resultSet.getString("lastname");
+
+                    System.out.println("Author ID: " + authorId + " | FirstName: " + firstname +
+                             " | LastName: " + lastname);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void readBooks(Connection connection, int authorid) {
+        try {
+            // Select and show all books
+            String selectQuery = "SELECT * FROM books";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
+                 ResultSet resultSet = preparedStatement.executeQuery()) {
+
+                
+                if(!resultSet.isBeforeFirst()) {
+                    System.out.println("There is no any book in this database!");
+                }else {
+                    while (resultSet.next()) {
+                    int bookid = resultSet.getInt("bookid");
+                    String title = resultSet.getString("title");
+                    String genre = resultSet.getString("genre");
+                    authorid = resultSet.getInt("authorid");
+                    int stockquantity = resultSet.getInt("stockquantity");
+                    double price = resultSet.getDouble("price");
+                    
+                    System.out.println("Book ID: " + bookid + " | Title: " + title + " | Genre: " + genre +
+                            " | Author ID: " + authorid + " | Stock Quantity: " + stockquantity + " | Price: " + price);
+                    }
+                }    
+                
             }
         } catch (SQLException e) {
             e.printStackTrace();
