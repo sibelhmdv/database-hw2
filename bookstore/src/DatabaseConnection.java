@@ -219,14 +219,18 @@ public class DatabaseConnection {
             try (PreparedStatement preparedStatement = connection.prepareStatement(selectQuery);
                  ResultSet resultSet = preparedStatement.executeQuery()) {
 
-                while (resultSet.next()) {
-                    int authorId = resultSet.getInt("authorid");
-                    String firstname = resultSet.getString("firstname");
-                    String lastname = resultSet.getString("lastname");
+                 if(!resultSet.isBeforeFirst()) {
+                    System.out.println("There is no any author in this database!");
+                }else {   
+                    while (resultSet.next()) {
+                        int authorId = resultSet.getInt("authorid");
+                        String firstname = resultSet.getString("firstname");
+                        String lastname = resultSet.getString("lastname");
 
-                    System.out.println("Author ID: " + authorId + " | FirstName: " + firstname +
+                        System.out.println("Author ID: " + authorId + " | FirstName: " + firstname +
                              " | LastName: " + lastname);
-                }
+                    }
+                }    
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -414,7 +418,6 @@ public class DatabaseConnection {
             return;
         }
 
-
         String insertOrderQuery = "INSERT INTO Orders (orderid, customerid, bookid, totalquantity) VALUES (?, ?, ?, ?)";
 
         try (PreparedStatement orderStatement = connection.prepareStatement(insertOrderQuery)) {
@@ -444,8 +447,6 @@ public class DatabaseConnection {
             }
         }
     }
-
-
 
 
 
