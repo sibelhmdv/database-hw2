@@ -306,4 +306,28 @@ public class DatabaseConnection {
 
     }
 
+
+    private static boolean hasEnoughBooksForTransaction(Connection connection, int bookid, int totalquantity) throws SQLException {
+
+        // Check if the stock quantity is accepted for transaction
+
+        String checkBookStockQuantity = "SELECT stockquantity FROM books WHERE bookid = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(checkBookStockQuantity)) {
+            preparedStatement.setInt(1, bookid);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    int stock_quantity = resultSet.getInt("stockquantity");
+                    return stock_quantity > totalquantity;
+                }else {
+                    System.out.println("Not enough book in the stock!");
+                    return false;
+                }
+            }
+        }
+
+    }
+
+
+
 }
