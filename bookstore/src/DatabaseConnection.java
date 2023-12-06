@@ -1,9 +1,11 @@
 import java.sql.Connection;
+import java.sql.*;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Scanner;
+
 
 public class DatabaseConnection {
     public static void main(String[] args) {
@@ -44,7 +46,13 @@ public class DatabaseConnection {
 
             System.out.print("Enter book ID: ");
             int bookid = scanner.nextInt();
-            updateOperationBook(connection, bookid);
+            //updateOperationBook(connection, bookid);
+
+            System.out.print("Enter Order ID: ");
+            int orderId = scanner.nextInt();
+            System.out.print("Enter the # of quantities: ");
+            int totalquantity = scanner.nextInt();
+            //placeOrder(connection, orderId, authorid, bookid, totalquantity);
 
             // Close the connection when done
             connection.close();
@@ -61,7 +69,7 @@ public class DatabaseConnection {
         try {
 
             if (!authorExists(connection, authorid)) {
-                System.out.println("Author with ID " + authorid + " does not exist. Please insert the author first.");
+                System.out.println("Author does not exist. Please insert the author first.");
                 return;
             }
 
@@ -72,7 +80,7 @@ public class DatabaseConnection {
 
             // Check if the book with the provided id already exists
             if (bookExists(connection, bookid)) {
-            System.out.println("Book with ID " + bookid + " already exists. Please choose a different Book ID.");
+            System.out.println("Book already exists. Please choose a different Book ID.");
             return;
             }
 
@@ -107,13 +115,16 @@ public class DatabaseConnection {
                 preparedStatement.setDouble(6, price);
 
                 int rowsInserted = preparedStatement.executeUpdate();
-                System.out.println(rowsInserted + " row(s) inserted in Books Table.");
+                if (rowsInserted == 0) {
+                    throw new SQLException("Failed to insert the Book. No rows affected.");
+                }else{ //--
+                System.out.println(rowsInserted + " row(s) inserted in Books Table."); 
+                } //--
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-
 
     private static void deleteOperationBooks(Connection connection, int authorid) {
         try {
@@ -156,7 +167,11 @@ public class DatabaseConnection {
                 preparedStatement.setString(3, lastname);
 
                 int rowsInserted = preparedStatement.executeUpdate();
+                if (rowsInserted == 0) {
+                    throw new SQLException("Failed to insert Author. No rows affected.");
+                }else {
                 System.out.println(rowsInserted + " row(s) inserted in Authors Table.");
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -165,9 +180,10 @@ public class DatabaseConnection {
 
     private static boolean authorExists(Connection connection, int authorid) throws SQLException {
         // Check if the author with the given ID already exists
-        String checkAuthorQuery = "SELECT COUNT(*) FROM authors WHERE authorid = ?";
-        try (PreparedStatement checkAuthorStatement = connection.prepareStatement(checkAuthorQuery)) {
+        String query = "SELECT COUNT(*) FROM authors WHERE authorid = ?";
+        try (PreparedStatement checkAuthorStatement = connection.prepareStatement(query)) {
             checkAuthorStatement.setInt(1, authorid);
+
             try (ResultSet resultSet = checkAuthorStatement.executeQuery()) {
                 if (resultSet.next()) {
                     int count = resultSet.getInt(1);
@@ -250,8 +266,9 @@ public class DatabaseConnection {
     private static boolean bookExists(Connection connection, int bookid) throws SQLException {
 
         // Check if the bookid already exists
-        String checkBookQuery = "SELECT COUNT(*) FROM books WHERE bookid = ?";
-        try (PreparedStatement checkBookStatement = connection.prepareStatement(checkBookQuery)) {
+        String query = "SELECT COUNT(*) FROM books WHERE bookid = ?";
+
+        try (PreparedStatement checkBookStatement = connection.prepareStatement(query)) {
             checkBookStatement.setInt(1, bookid);
             try (ResultSet resultSet = checkBookStatement.executeQuery()) {
                 if (resultSet.next()) {
@@ -328,6 +345,108 @@ public class DatabaseConnection {
 
     }
 
+    private static void placeOrder(Connection connection, int orderid, int customerid, int bookid, int totalquantity) {
+        try {
+            // Check if there are enough books in the inventory
+            if (!hasEnoughBooksForTransaction(connection, bookid, totalquantity)) {
+                System.out.println("Not enough books in the inventory. Order placement aborted.");
+                return;
+            }
+    
+            // Begin the transaction
+            connection.setAutoCommit(false);
+    
+            // Insert the order
+            insertOrder(connection, orderid, customerid, bookid, totalquantity);
+    
+            // After we reduced from the Stock, Update it also in Books Table
+            updateBookStock(connection, bookid, totalquantity);
+    
+            // Commit the transaction if everything is successful
+            connection.commit();
+            System.out.println("Order placed successfully.");
+    
+        } catch (SQLException e) {
+            // Roll back the transaction if an error occurs
+            try {
+                connection.rollback();
+                System.out.println("Error! Transaction rolled back.");
+            } catch (SQLException rollbackException) {
+                rollbackException.printStackTrace();
+            }
+    
+            e.printStackTrace();
+        } finally {
+            // Reset auto-commit to true to return to the default behavior
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static boolean hasOrder(Connection connection, int orderid) throws SQLException {
+
+        // Check if the orderId already exists
+        String query = "SELECT COUNT(*) FROM orders WHERE orderid = ?";
+
+        try (PreparedStatement checkOrderId = connection.prepareStatement(query)) {
+
+            checkOrderId.setInt(1, orderid);
+
+            try (ResultSet resultSet = checkOrderId.executeQuery()) {
+                if (resultSet.next()) {
+                    int count = resultSet.getInt(1);
+                    return count > 1;
+                }
+            }
+        }
+
+        return false;
+    }
+ 
+    private static void insertOrder(Connection connection, int orderid, int customerid, int bookid, int totalquantity) throws SQLException {
+
+
+        if (hasOrder(connection, orderid)) {
+            System.out.println("This OrderID already exists. Please choose a different ID.");
+            return;
+        }
+
+
+        String insertOrderQuery = "INSERT INTO Orders (orderid, customerid, bookid, totalquantity) VALUES (?, ?, ?, ?)";
+
+        try (PreparedStatement orderStatement = connection.prepareStatement(insertOrderQuery)) {
+            orderStatement.setInt(1, orderid);
+            orderStatement.setInt(2, customerid);
+            orderStatement.setInt(3, bookid);
+            orderStatement.setInt(4, totalquantity);
+
+            int rowsInserted = orderStatement.executeUpdate();
+            if (rowsInserted == 0) {
+                throw new SQLException("Failed to insert order!");
+            }
+        }
+    }
+
+    private static void updateBookStock(Connection connection, int bookid, int totalquantity) throws SQLException {
+
+        String updateQuery = "UPDATE Books SET stockquantity = stockquantity - ? WHERE bookid = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+            preparedStatement.setInt(1, totalquantity);
+            preparedStatement.setInt(2, bookid);
+
+            int rowsUpdated = preparedStatement.executeUpdate();
+            if (rowsUpdated == 0) {
+                throw new SQLException("Failed to update book stock!");
+            }
+        }
+    }
+
+
+    
 
 
 }
