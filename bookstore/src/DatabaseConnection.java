@@ -40,7 +40,7 @@ public class DatabaseConnection {
             
             //readAuthors(connection);
             
-            readBooks(connection, authorid);
+            //readBooks(connection, authorid); //check after fixing inserting book method
 
             // Close the connection when done
             connection.close();
@@ -61,9 +61,16 @@ public class DatabaseConnection {
                 return;
             }
 
+            
             Scanner scanner = new Scanner(System.in);
             System.out.print("Enter Book ID: ");
             int bookid = scanner.nextInt();
+
+            // Check if the book with the provided id already exists
+            if (bookExists(connection, bookid)) {
+            System.out.println("Book with ID " + bookid + " already exists. Please choose a different Book ID.");
+            return;
+            }
 
             System.out.print("Enter Book Title: ");
             String title = scanner.nextLine();
@@ -88,8 +95,8 @@ public class DatabaseConnection {
 
             try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
                 preparedStatement.setInt(1, bookid);
-                preparedStatement.setString(2, title); 
-                preparedStatement.setString(3, genre);
+                preparedStatement.setString(2, title.trim()); 
+                preparedStatement.setString(3, genre.trim());
                 preparedStatement.setInt(4, authorid); 
                 preparedStatement.setInt(5, quantity);
                 preparedStatement.setDouble(6, price);
@@ -233,6 +240,21 @@ public class DatabaseConnection {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private static boolean bookExists(Connection connection, int bookid) throws SQLException {
+        // Check if the bookid already exists
+        String checkBookQuery = "SELECT COUNT(*) FROM books WHERE bookid = ?";
+        try (PreparedStatement checkBookStatement = connection.prepareStatement(checkBookQuery)) {
+            checkBookStatement.setInt(1, bookid);
+            try (ResultSet resultSet = checkBookStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    int count = resultSet.getInt(1);
+                    return count > 0;
+                }
+            }
+        }
+        return false;
     }
 
 }
