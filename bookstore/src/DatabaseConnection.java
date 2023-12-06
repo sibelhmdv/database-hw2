@@ -20,10 +20,13 @@ public class DatabaseConnection {
             Connection connection = DriverManager.getConnection(url, user, password);
 
 
-            insertOperationAuthors(connection, 1);
+            //insertOperationAuthors(connection, 1); //no duplicate should have here
 
-            insertOperationBooks(connection, 1);
+            //insertOperationBooks(connection, 1); //no duplicate should have here
             
+            //deleteOperationBooks(connection, 1); 
+
+            //deleteOperationAuthors(connection, 1);
             
 
             if (connection != null && !connection.isClosed()) {
@@ -49,7 +52,6 @@ public class DatabaseConnection {
                 return;
             }
 
-            
 
             // Insert a new book
             String insertQuery = "INSERT INTO books (bookid, title, genre, authorid, stockquantity, price) " + 
@@ -65,6 +67,22 @@ public class DatabaseConnection {
 
                 int rowsInserted = preparedStatement.executeUpdate();
                 System.out.println(rowsInserted + " row(s) inserted in Books Table.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private static void deleteOperationBooks(Connection connection, int authorid) {
+        try {
+            // Delete a book by bookid
+            String deleteQuery = "DELETE FROM books WHERE authorid = ?";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
+                preparedStatement.setInt(1, authorid); // assigning value manually for now
+
+                int rowsAffected = preparedStatement.executeUpdate();
+                System.out.println(rowsAffected + " row(s)" + "with the Author ID of " + authorid + " deleted from Books.");
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -112,5 +130,22 @@ public class DatabaseConnection {
         return false;
     }
 
+    private static void deleteOperationAuthors(Connection connection, int authorid) {
+        try {
+
+            // Delete related book first
+            deleteOperationBooks(connection, authorid);
+
+            String deleteQuery = "DELETE FROM authors WHERE authorid = ?";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
+                preparedStatement.setInt(1, authorid); // assigning value manually for now
+
+                int rowsAffected = preparedStatement.executeUpdate();
+                System.out.println(rowsAffected + " row(s) deleted from Authors.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
 }
