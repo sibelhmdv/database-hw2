@@ -42,7 +42,7 @@ public class DatabaseConnection {
             
             //readBooks(connection, authorid); //check after fixing inserting book method
 
-            
+
             // Close the connection when done
             connection.close();
 
@@ -245,6 +245,7 @@ public class DatabaseConnection {
     }
 
     private static boolean bookExists(Connection connection, int bookid) throws SQLException {
+
         // Check if the bookid already exists
         String checkBookQuery = "SELECT COUNT(*) FROM books WHERE bookid = ?";
         try (PreparedStatement checkBookStatement = connection.prepareStatement(checkBookQuery)) {
@@ -259,4 +260,5 @@ public class DatabaseConnection {
         return false;
     }
 
+    private static void updateOperationBooks(Connection connection)
 }
