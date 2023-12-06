@@ -32,7 +32,7 @@ public class DatabaseConnection {
 
             //insertOperationAuthors(connection, authorid); 
 
-            insertOperationBooks(connection, authorid); 
+            //insertOperationBooks(connection, authorid); 
             
             //deleteOperationBooks(connection, authorid); 
 
@@ -42,6 +42,7 @@ public class DatabaseConnection {
             
             //readBooks(connection, authorid); //check after fixing inserting book method
 
+            
             // Close the connection when done
             connection.close();
 
@@ -73,7 +74,8 @@ public class DatabaseConnection {
             }
 
             System.out.print("Enter Book Title: ");
-            String title = scanner.nextLine();
+            String title = scanner.next(); //nextline was returning empty line
+
 
             scanner.nextLine(); //prevention of empty string for the next line
 
@@ -81,7 +83,7 @@ public class DatabaseConnection {
             int quantity = scanner.nextInt();
 
             System.out.print("Enter Book's Genre: ");
-            String genre = scanner.nextLine();
+            String genre = scanner.next();
 
             scanner.nextLine();
 
@@ -95,8 +97,8 @@ public class DatabaseConnection {
 
             try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
                 preparedStatement.setInt(1, bookid);
-                preparedStatement.setString(2, title.trim()); 
-                preparedStatement.setString(3, genre.trim());
+                preparedStatement.setString(2, title); 
+                preparedStatement.setString(3, genre);
                 preparedStatement.setInt(4, authorid); 
                 preparedStatement.setInt(5, quantity);
                 preparedStatement.setDouble(6, price);
