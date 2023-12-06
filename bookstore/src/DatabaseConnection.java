@@ -7,6 +7,7 @@ import java.util.Scanner;
 
 
 public class DatabaseConnection {
+
     public static void main(String[] args) {
         // Database connection parameters
         String url = "jdbc:postgresql://localhost:5432/postgresAS2";
