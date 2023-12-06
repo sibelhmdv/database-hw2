@@ -146,7 +146,7 @@ public class DatabaseConnection {
 
 
             if(authorExists(connection, 0)) {
-                System.out.println("Author with ID " + authorid + " already exists.");
+                System.out.println("Author already exists!");
                 return;
             }
 
